@@ -1,0 +1,12 @@
+require('./entreprise');
+require('./photo');
+require('./offre');
+require('./utilisateur');
+require('./diplome');
+require('./ecole');
+require('./etudiant');
+require('./evaluation');
+require('./fichiers');
+require('./partenaires');
+require('./reponseSignalement');
+require('./signalement');

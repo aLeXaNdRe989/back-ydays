@@ -1,25 +1,12 @@
-const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
-const Entreprise = require('./models/entreprise');
-const Offre = require('./models/offre');
-const Utilisateur = require('./models/utilisateur');
 require('dotenv').config();
-
-const app = express();
-
-// Middlewares
-app.use(cors());
-app.use(express.json());
-
-// Connexion MongoDB
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('MongoDB connecté 🚀'))
-    .catch(err => console.log(err));
-
-// Routes
-const authRoutes = require('./routes/authRoutes');
-app.use('/api/auth', authRoutes);
+const app = require('./app');
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Serveur démarré sur le port ${PORT} ✅`));
+
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => {
+        console.log('MongoDB connecté ✅');
+        app.listen(PORT, () => console.log(`Serveur sur le port ${PORT} 🚀`));
+    })
+    .catch(err => console.error(err));

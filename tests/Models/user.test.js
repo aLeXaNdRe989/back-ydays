@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
-const Utilisateur = require('../models/User.js');
+const app = require('../../app');
+const Utilisateur = require('../../models/utilisateur.js');
 
 let mongoServer;
 
@@ -17,7 +18,7 @@ afterAll(async () => {
 
 describe('Utilisateur Model Test', () => {
     it('Création d\'un utilisateur valide', async () => {
-        const user = new Utilisateur({
+        const utilisateur = new Utilisateur({
             nom: 'Doe',
             prenom: 'John',
             email: 'john.doe@example.com',
@@ -25,14 +26,14 @@ describe('Utilisateur Model Test', () => {
             password: 'motdepassehashé'
         });
 
-        const savedUser = await user.save();
+        const savedutilisateur = await utilisateur.save();
 
-        expect(savedUser._id).toBeDefined();
-        expect(savedUser.email).toBe('john.doe@example.com');
+        expect(savedutilisateur._id).toBeDefined();
+        expect(savedutilisateur.email).toBe('john.doe@example.com');
     });
 
     it('Ne doit pas sauvegarder sans email', async () => {
-        const userSansEmail = new Utilisateur({
+        const utilisateurSansEmail = new Utilisateur({
             nom: 'Test',
             prenom: 'SansEmail',
             password: 'motdepassehashé'
@@ -40,7 +41,7 @@ describe('Utilisateur Model Test', () => {
 
         let err;
         try {
-            await userSansEmail.save();
+            await utilisateurSansEmail.save();
         } catch (error) {
             err = error;
         }
