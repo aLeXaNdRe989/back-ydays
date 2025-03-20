@@ -4,19 +4,6 @@ const app = require('../../app');
 const Ecole = require('../../models/ecole');
 const Diplome = require('../../models/diplome');
 
-let mongoServer;
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-    await mongoose.connect(uri);
-});
-
-afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
-});
-
 describe('Ecole Model Test', () => {
     it('Crée une école avec diplôme', async () => {
         const diplome = new Diplome({

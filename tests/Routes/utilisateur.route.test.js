@@ -5,25 +5,6 @@ const app = require('../../app');
 const Utilisateur = require('../../models/utilisateur');
 const Photo = require('../../models/photo');
 
-let mongoServer;
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-    await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-});
-
-afterAll(async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.connection.close();
-    await mongoServer.stop();
-});
-
-beforeEach(async () => {
-    await Utilisateur.deleteMany();
-    await Photo.deleteMany();
-});
-
 describe('Utilisateur API', () => {
 
     it('POST /api/utilisateurs - doit créer un utilisateur', async () => {

@@ -1,32 +1,9 @@
-const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 const request = require('supertest');
 const app = require('../../app');
 const Etudiant = require('../../models/etudiant');
 const Utilisateur = require('../../models/utilisateur');
 const Ecole = require('../../models/ecole');
 const Entreprise = require('../../models/entreprise');
-
-let mongoServer;
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-    await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-});
-
-afterAll(async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.connection.close();
-    await mongoServer.stop();
-});
-
-beforeEach(async () => {
-    await Etudiant.deleteMany();
-    await Utilisateur.deleteMany();
-    await Ecole.deleteMany();
-    await Entreprise.deleteMany();
-});
 
 describe('Etudiant API', () => {
 
@@ -38,8 +15,15 @@ describe('Etudiant API', () => {
             password: 'hashedpassword'
         });
 
+        const EntrepriseOwner = await Utilisateur.create({
+            nom: 'Test',
+            prenom: 'User',
+            email: 'user@test.com',
+            password: 'hashedpassword'
+        });
+
         const ecole = await Ecole.create({ nom: 'Ecole Dev' });
-        const entreprise = await Entreprise.create({ nom: 'Entreprise Dev', email: 'dev@entreprise.com' });
+        const entreprise = await Entreprise.create({ nom: 'Entreprise Dev', email: 'dev@entreprise.com', createdBy: EntrepriseOwner._id });
 
         const res = await request(app)
             .post('/api/etudiants')
@@ -136,4 +120,5 @@ describe('Etudiant API', () => {
         const deleted = await Etudiant.findById(etudiant._id);
         expect(deleted).toBeNull();
     });
+
 });

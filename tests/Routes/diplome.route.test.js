@@ -4,24 +4,6 @@ const request = require('supertest');
 const app = require('../../app');
 const Diplome = require('../../models/diplome');
 
-let mongoServer;
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-    await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-});
-
-afterAll(async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.connection.close();
-    await mongoServer.stop();
-});
-
-beforeEach(async () => {
-    await Diplome.deleteMany();
-});
-
 describe('Diplome API', () => {
 
     it('POST /api/diplomes - doit créer un diplome', async () => {

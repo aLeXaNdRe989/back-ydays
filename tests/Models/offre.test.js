@@ -3,21 +3,22 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('../../app');
 const Offre = require('../../models/offre');
 const Entreprise = require('../../models/entreprise');
+const Utilisateur = require('../../models/utilisateur');
 
-let mongoServer;
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-    await mongoose.connect(uri);
-});
-
-afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
-});
+let CreatedBy;
 
 describe('Offre Model Test', () => {
+
+    beforeAll(async () => {
+        const EntrepriseOwner = await Utilisateur.create({
+            nom: 'Test',
+            prenom: 'User',
+            email: 'user@test.com',
+            password: 'hashedpassword'
+        });
+        CreatedBy = EntrepriseOwner._id;
+    });
+
     it('Crée une offre valide avec une entreprise', async () => {
         // Crée une entreprise liée à l'offre
         const entreprise = new Entreprise({
@@ -25,7 +26,8 @@ describe('Offre Model Test', () => {
             description: 'Entreprise d\'innovation',
             adresse: '123 rue des Startups',
             email: 'contact@innovcorp.com',
-            logo: 'http://logo.com/innovcorp.png'
+            logo: 'http://logo.com/innovcorp.png',
+            createdBy : CreatedBy
         });
 
         const savedEntreprise = await entreprise.save();

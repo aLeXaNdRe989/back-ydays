@@ -3,19 +3,6 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('../../app');
 const Photo = require('../../models/photo');
 
-let mongoServer;
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-    await mongoose.connect(uri);
-});
-
-afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
-});
-
 describe('Photo Model Test', () => {
     it('Crée une photo valide', async () => {
         const photo = new Photo({

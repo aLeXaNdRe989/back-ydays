@@ -4,24 +4,6 @@ const request = require('supertest');
 const app = require('../../app');
 const Photo = require('../../models/photo');
 
-let mongoServer;
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-    await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-});
-
-afterAll(async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.connection.close();
-    await mongoServer.stop();
-});
-
-beforeEach(async () => {
-    await Photo.deleteMany();
-});
-
 describe('Photo API', () => {
 
     it('POST /api/photos - doit créer une photo', async () => {

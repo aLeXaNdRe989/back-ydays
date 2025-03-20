@@ -1,30 +1,32 @@
+require('dotenv').config({ path: '.env.test' });
+
 const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('../../app');
 const Entreprise = require('../../models/entreprise');
+const Utilisateur = require('../../models/utilisateur');
 
-let mongoServer;
+let CreatedBy;
 
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
+describe('Entreprise Model Test (Atlas)', () => {
 
-    await mongoose.connect(uri);
-});
+    beforeAll(async () => {
+        const EntrepriseOwner = await Utilisateur.create({
+            nom: 'Test',
+            prenom: 'User',
+            email: 'user@test.com',
+            password: 'hashedpassword'
+        });
+        CreatedBy = EntrepriseOwner._id;
+    });
 
-afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
-});
-
-describe('Entreprise Model Test', () => {
     it('Création d\'une entreprise valide', async () => {
         const validEntreprise = new Entreprise({
             nom: 'Test Entreprise',
             description: 'Description test',
             adresse: '123 rue des tests',
             email: 'test@entreprise.com',
-            logo: 'http://image.com/logo.png'
+            logo: 'http://image.com/logo.png',
+            createdBy: CreatedBy
         });
 
         const savedEntreprise = await validEntreprise.save();
@@ -38,6 +40,7 @@ describe('Entreprise Model Test', () => {
         const entrepriseSansEmail = new Entreprise({
             nom: 'Entreprise sans email',
             description: 'Pas d\'email',
+            createdBy: CreatedBy
         });
 
         let err;

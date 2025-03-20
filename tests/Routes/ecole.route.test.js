@@ -5,25 +5,6 @@ const app = require('../../app');
 const Ecole = require('../../models/ecole');
 const Diplome = require('../../models/diplome');
 
-let mongoServer;
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-    await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-});
-
-afterAll(async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.connection.close();
-    await mongoServer.stop();
-});
-
-beforeEach(async () => {
-    await Ecole.deleteMany();
-    await Diplome.deleteMany();
-});
-
 describe('Ecole API', () => {
 
     it('POST /api/ecoles - doit créer une école', async () => {

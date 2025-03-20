@@ -5,19 +5,6 @@ const Fichiers = require('../../models/fichiers');
 const Etudiant = require('../../models/etudiant');
 const Utilisateur = require('../../models/utilisateur');
 
-let mongoServer;
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-    await mongoose.connect(uri);
-});
-
-afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
-});
-
 describe('Fichiers Model Test', () => {
     it('Crée un fichier lié à un étudiant', async () => {
         const utilisateur = new Utilisateur({

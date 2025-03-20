@@ -6,26 +6,6 @@ const Fichiers = require('../../models/fichiers');
 const Etudiant = require('../../models/etudiant');
 const Utilisateur = require('../../models/utilisateur');
 
-let mongoServer;
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-    await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-});
-
-afterAll(async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.connection.close();
-    await mongoServer.stop();
-});
-
-beforeEach(async () => {
-    await Fichiers.deleteMany();
-    await Etudiant.deleteMany();
-    await Utilisateur.deleteMany();
-});
-
 describe('Fichiers API', () => {
 
     it('POST /api/fichiers - doit créer un fichier', async () => {

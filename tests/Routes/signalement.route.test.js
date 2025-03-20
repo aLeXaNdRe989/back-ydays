@@ -8,28 +8,6 @@ const Ecole = require('../../models/ecole');
 const Entreprise = require('../../models/entreprise');
 const Utilisateur = require('../../models/utilisateur');
 
-let mongoServer;
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-    await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-});
-
-afterAll(async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.connection.close();
-    await mongoServer.stop();
-});
-
-beforeEach(async () => {
-    await Signalement.deleteMany();
-    await Etudiant.deleteMany();
-    await Ecole.deleteMany();
-    await Entreprise.deleteMany();
-    await Utilisateur.deleteMany();
-});
-
 describe('Signalement API', () => {
 
     it('POST /api/signalements - doit créer un signalement', async () => {

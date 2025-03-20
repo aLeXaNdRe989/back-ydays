@@ -1,4 +1,7 @@
+require('dotenv').config();
 const express = require('express');
+
+const authRoutes = require('./routes/authRoutes');
 const entrepriseRoutes = require('./routes/entrepriseRoutes');
 const offreRoutes = require('./routes/offreRoutes');
 const diplomeRoutes = require('./routes/diplomeRoutes');
@@ -12,13 +15,17 @@ const reponseSignalementRoute = require('./routes/reponseSignalementRoutes');
 const signalementRoute = require('./routes/signalementRoutes');
 const utilisateurRoute = require('./routes/utilisateurRoutes');
 require('./models');
-
+const { swaggerUi, specs } = require('./configs/swagger');
+const swaggerFile = require('./swagger-output.json');
 
 const app = express();
 
 app.use(express.json());
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(specs));
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
-// ➡️ Routes
+// Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/entreprises', entrepriseRoutes);
 app.use('/api/offres', offreRoutes);
 app.use('/api/diplomes', diplomeRoutes);

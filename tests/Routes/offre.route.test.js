@@ -4,31 +4,27 @@ const request = require('supertest');
 const app = require('../../app');
 const Offre = require('../../models/offre');
 const Entreprise = require('../../models/entreprise');
+const Utilisateur = require("../../models/utilisateur");
 
-let mongoServer;
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-    await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-});
-
-afterAll(async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.connection.close();
-    await mongoServer.stop();
-});
-
-beforeEach(async () => {
-    await Offre.deleteMany();
-    await Entreprise.deleteMany();
-});
+let CreatedBy;
 
 describe('Offre API', () => {
+
+    beforeAll(async () => {
+        const EntrepriseOwner = await Utilisateur.create({
+            nom: 'Test',
+            prenom: 'User',
+            email: 'user@test.com',
+            password: 'hashedpassword'
+        });
+        CreatedBy = EntrepriseOwner._id;
+    });
+
     it('POST /api/offres - doit créer une offre', async () => {
         const entreprise = await Entreprise.create({
             nom: 'Test Entreprise',
-            email: 'test@entreprise.com'
+            email: 'test@entreprise.com',
+            createdBy: CreatedBy
         });
 
         const res = await request(app)
@@ -47,7 +43,8 @@ describe('Offre API', () => {
     it('GET /api/offres - doit retourner une liste d\'offres', async () => {
         const entreprise = await Entreprise.create({
             nom: 'Entreprise A',
-            email: 'a@entreprise.com'
+            email: 'a@entreprise.com',
+            createdBy: CreatedBy
         });
 
         await Offre.create({
@@ -71,7 +68,8 @@ describe('Offre API', () => {
     it('GET /api/offres/:id - doit retourner une offre spécifique', async () => {
         const entreprise = await Entreprise.create({
             nom: 'Entreprise B',
-            email: 'b@entreprise.com'
+            email: 'b@entreprise.com',
+            createdBy: CreatedBy
         });
 
         const offre = await Offre.create({
@@ -89,7 +87,8 @@ describe('Offre API', () => {
     it('PUT /api/offres/:id - doit mettre à jour une offre', async () => {
         const entreprise = await Entreprise.create({
             nom: 'Entreprise C',
-            email: 'c@entreprise.com'
+            email: 'c@entreprise.com',
+            createdBy: CreatedBy
         });
 
         const offre = await Offre.create({
@@ -109,7 +108,8 @@ describe('Offre API', () => {
     it('DELETE /api/offres/:id - doit supprimer une offre', async () => {
         const entreprise = await Entreprise.create({
             nom: 'Entreprise D',
-            email: 'd@entreprise.com'
+            email: 'd@entreprise.com',
+            createdBy: CreatedBy
         });
 
         const offre = await Offre.create({

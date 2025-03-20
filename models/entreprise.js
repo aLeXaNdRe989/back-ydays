@@ -7,6 +7,7 @@ const entrepriseSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     logo: { type: String }, // URL vers l'image ou base64
     images: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Photo' }], // tableau de photos liées
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Utilisateur', required: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Entreprise', entrepriseSchema);

@@ -4,19 +4,6 @@ const app = require('../../app');
 const Evaluation = require('../../models/evaluation');
 const Utilisateur = require('../../models/utilisateur');
 
-let mongoServer;
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-    await mongoose.connect(uri);
-});
-
-afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
-});
-
 describe('Evaluation Model Test', () => {
     it('Crée une évaluation valide', async () => {
         const utilisateur = new Utilisateur({

@@ -5,25 +5,6 @@ const app = require('../../app');
 const Partenaire = require('../../models/partenaires');
 const Photo = require('../../models/photo');
 
-let mongoServer;
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-    await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-});
-
-afterAll(async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.connection.close();
-    await mongoServer.stop();
-});
-
-beforeEach(async () => {
-    await Partenaire.deleteMany();
-    await Photo.deleteMany();
-});
-
 describe('Partenaire API', () => {
 
     it('POST /api/partenaires - doit créer un partenaire', async () => {

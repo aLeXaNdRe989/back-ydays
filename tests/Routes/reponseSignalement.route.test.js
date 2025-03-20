@@ -7,27 +7,6 @@ const Signalement = require('../../models/signalement');
 const Etudiant = require('../../models/etudiant');
 const Utilisateur = require('../../models/utilisateur');
 
-let mongoServer;
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-    await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-});
-
-afterAll(async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.connection.close();
-    await mongoServer.stop();
-});
-
-beforeEach(async () => {
-    await ReponseSignalement.deleteMany();
-    await Signalement.deleteMany();
-    await Etudiant.deleteMany();
-    await Utilisateur.deleteMany();
-});
-
 describe('ReponseSignalement API', () => {
 
     it('POST /api/reponses-signalement - doit créer une réponse de signalement', async () => {

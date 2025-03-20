@@ -5,25 +5,6 @@ const app = require('../../app');
 const Evaluation = require('../../models/evaluation');
 const Utilisateur = require('../../models/utilisateur');
 
-let mongoServer;
-
-beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-    await mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true });
-});
-
-afterAll(async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.connection.close();
-    await mongoServer.stop();
-});
-
-beforeEach(async () => {
-    await Evaluation.deleteMany();
-    await Utilisateur.deleteMany();
-});
-
 describe('Evaluation API', () => {
 
     it('POST /api/evaluations - doit créer une évaluation', async () => {
