@@ -37,14 +37,14 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(cors({
+const corsOptions = {
     origin: (origin, cb) => cb(null, isAllowedOrigin(origin)),
     methods: ['GET','HEAD','POST','PUT','PATCH','DELETE','OPTIONS'],
     allowedHeaders: ['Content-Type','Authorization'],
-    credentials: false,          // tu utilises Authorization: Bearer
+    credentials: false,
     preflightContinue: false,
     optionsSuccessStatus: 204
-}));
+};
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
