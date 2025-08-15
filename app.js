@@ -5,8 +5,16 @@ const cors = require('cors');
 
 const app = express();
 
+const allowedOrigins = [
+    'http://localhost:5173',
+    'https://alternwork-front.vercel.app/'
+];
+
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin(origin, cb) {
+        if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+        return cb(new Error('Origine non autorisée par le CORS'));
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true
 }));
