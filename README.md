@@ -14,7 +14,7 @@ Documentation : génération automatique de la spécification OpenAPI avec swag
 Tests automatisés : suite de tests avec Jest, Supertest et mongodb-memory-server.
 
 Prérequis
-Node.js (version 18 ou ultérieure). 
+Node.js (version 18 ou ultérieure).
 
 npm (installé avec Node).
 
