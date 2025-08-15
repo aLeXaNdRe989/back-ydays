@@ -10,26 +10,41 @@ const allowedOrigins = [
     'https://alternwork-front.vercel.app',
 ];
 
-function isAllowed(origin) {
-    if (!origin) return true;
-    if (allowedOrigins.includes(origin)) return true;
+function isAllowedOrigin(origin) {
+    if (!origin) return true; // Postman/cURL, same-origin, etc.
     try {
-        const { hostname } = new URL(origin);
-        if (hostname.endsWith('.vercel.app')) return true;
-    } catch (_) {}
-    return false;
+        const { hostname, protocol } = new URL(origin);
+        if (protocol !== 'https:' && hostname !== 'localhost') return false;
+
+        // Local
+        if (origin === 'http://localhost:5173') return true;
+
+        // Production Vercel
+        if (hostname === 'alternwork-front.vercel.app') return true;
+
+        // Previews Vercel de CE projet : alternwork-front-xxxxx-<team>.vercel.app
+        if (hostname.startsWith('alternwork-front-') && hostname.endsWith('.vercel.app')) {
+            return true;
+        }
+        return false;
+    } catch {
+        return false;
+    }
 }
 
-const corsOptions = {
-    origin(origin, cb) {
-        if (isAllowed(origin)) return cb(null, true);
-        return cb(null, false);
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: false,
-    optionsSuccessStatus: 204,
-};
+app.use((req, res, next) => {
+    res.header('Vary', 'Origin'); // éviter les caches foireux
+    next();
+});
+
+app.use(cors({
+    origin: (origin, cb) => cb(null, isAllowedOrigin(origin)),
+    methods: ['GET','HEAD','POST','PUT','PATCH','DELETE','OPTIONS'],
+    allowedHeaders: ['Content-Type','Authorization'],
+    credentials: false,          // tu utilises Authorization: Bearer
+    preflightContinue: false,
+    optionsSuccessStatus: 204
+}));
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
