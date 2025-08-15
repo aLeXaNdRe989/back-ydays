@@ -12,12 +12,16 @@ const allowedOrigins = [
 
 app.use(cors({
     origin(origin, cb) {
-        if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
-        return cb(new Error('Origine non autorisée par le CORS'));
+        if (!origin || allowedOrigins.includes(origin)) {
+            return cb(null, true);
+        }
+        return cb(new Error(`Origine non autorisée par le CORS: ${origin}`));
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    credentials: false
+    credentials: true
 }));
+
+app.options('*', cors());
 
 if (process.env.NODE_ENV === 'production') {
     app.use(morgan('combined'));
