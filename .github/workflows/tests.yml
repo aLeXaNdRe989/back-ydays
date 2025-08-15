@@ -2,23 +2,34 @@ name: Tests Backend
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "main" ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     env:
+      NODE_ENV: test
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: 'npm'
 
-      - name: Install dependencies
-        run: npm install
+      - name: Installer les dépendances
+        run: npm ci
 
-      - name: Run Tests
-        run: npm run test:coverage # NODE_ENV=test
+      - name: Lancement des tests avec rapport de couverture
+        run: npm run test:coverage
+
+      - name: Envoi du rapport de couverture à Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/lcov.info
+          fail_ci_if_error: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
