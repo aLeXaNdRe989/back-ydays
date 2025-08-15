@@ -7,29 +7,39 @@ const app = express();
 
 const allowedOrigins = [
     'http://localhost:5173',
-    'https://alternwork-front.vercel.app'
+    'https://alternwork-front.vercel.app',
 ];
 
-app.use(cors({
+function isAllowed(origin) {
+    if (!origin) return true;
+    if (allowedOrigins.includes(origin)) return true;
+    try {
+        const { hostname } = new URL(origin);
+        if (hostname.endsWith('.vercel.app')) return true;
+    } catch (_) {}
+    return false;
+}
+
+const corsOptions = {
     origin(origin, cb) {
-        if (!origin || allowedOrigins.includes(origin)) {
-            return cb(null, true);
-        }
-        return cb(new Error(`Origine non autorisée par le CORS: ${origin}`));
+        if (isAllowed(origin)) return cb(null, true);
+        return cb(null, false);
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    credentials: true
-}));
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: false,
+    optionsSuccessStatus: 204,
+};
 
-app.options('*', cors());
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+app.use(express.json());
 
 if (process.env.NODE_ENV === 'production') {
     app.use(morgan('combined'));
 } else if (process.env.NODE_ENV !== 'test') {
     app.use(morgan('dev'));
 }
-
-app.use(express.json());
 
 app.get('/api/health', (_req, res) => {
     res.json({
