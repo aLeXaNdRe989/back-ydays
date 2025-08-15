@@ -1,5 +1,17 @@
 require('dotenv').config();
 const express = require('express');
+const morgan = require('morgan');
+const cors = require('cors');
+
+const app = express();
+
+app.use(cors({
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true
+}));
+app.use(morgan('combined'));
+app.use(express.json());
 
 const authRoutes = require('./routes/authRoutes');
 const entrepriseRoutes = require('./routes/entrepriseRoutes');
@@ -18,7 +30,6 @@ require('./models');
 const { swaggerUi, specs } = require('./configs/swagger');
 const swaggerFile = require('./swagger-output.json');
 
-const app = express();
 
 app.use(express.json());
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(specs));
