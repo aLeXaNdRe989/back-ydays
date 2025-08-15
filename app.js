@@ -7,7 +7,7 @@ const app = express();
 
 const allowedOrigins = [
     'http://localhost:5173',
-    'https://alternwork-front.vercel.app/'
+    'https://alternwork-front.vercel.app'
 ];
 
 app.use(cors({
@@ -16,10 +16,29 @@ app.use(cors({
         return cb(new Error('Origine non autorisée par le CORS'));
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    credentials: true
+    credentials: false
 }));
-app.use(morgan('combined'));
+
+if (process.env.NODE_ENV === 'production') {
+    app.use(morgan('combined'));
+} else if (process.env.NODE_ENV !== 'test') {
+    app.use(morgan('dev'));
+}
+
 app.use(express.json());
+
+app.get('/api/health', (_req, res) => {
+    res.json({
+        status: 'ok',
+        uptime: process.uptime(),
+        env: process.env.NODE_ENV || 'development'
+    });
+});
+
+const { swaggerUi, specs } = require('./configs/swagger');
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(specs));
+
+require('./models');
 
 const authRoutes = require('./routes/authRoutes');
 const entrepriseRoutes = require('./routes/entrepriseRoutes');
@@ -29,21 +48,12 @@ const ecoleRoutes = require('./routes/ecoleRoutes');
 const etudiantRoutes = require('./routes/etudiantRoutes');
 const evaluationRoutes = require('./routes/evaluationRoutes');
 const fichiersRoutes = require('./routes/fichiersRoutes');
-const partenaireRoutes = require('./routes/partenaireRoutes.Js');
+const partenaireRoutes = require('./routes/partenaireRoutes.js');
 const photoRoute = require('./routes/photoRoutes');
 const reponseSignalementRoute = require('./routes/reponseSignalementRoutes');
 const signalementRoute = require('./routes/signalementRoutes');
 const utilisateurRoute = require('./routes/utilisateurRoutes');
-require('./models');
-const { swaggerUi, specs } = require('./configs/swagger');
-const swaggerFile = require('./swagger-output.json');
 
-
-app.use(express.json());
-app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(specs));
-app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
-
-// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/entreprises', entrepriseRoutes);
 app.use('/api/offres', offreRoutes);
@@ -55,7 +65,16 @@ app.use('/api/fichiers', fichiersRoutes);
 app.use('/api/partenaires', partenaireRoutes);
 app.use('/api/photos', photoRoute);
 app.use('/api/reponses-signalement', reponseSignalementRoute);
-app.use('/api/signalements',signalementRoute);
+app.use('/api/signalements', signalementRoute);
 app.use('/api/utilisateurs', utilisateurRoute);
+
+app.use('/api', (_req, res) => {
+    res.status(404).json({ error: 'Route non trouvée' });
+});
+
+app.use((err, _req, res, _next) => {
+    const status = err.status || 500;
+    res.status(status).json({ error: err.message || 'Erreur serveur' });
+});
 
 module.exports = app;
