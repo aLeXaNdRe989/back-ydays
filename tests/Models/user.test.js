@@ -36,4 +36,80 @@ describe('Utilisateur Model Test', () => {
         expect(err).toBeInstanceOf(mongoose.Error.ValidationError);
         expect(err.errors.email).toBeDefined();
     });
+
+    // ===== TESTS isApproved =====
+    it('devrait avoir isApproved par defaut a approved', async () => {
+        const utilisateur = new Utilisateur({
+            nom: 'Default',
+            prenom: 'Approved',
+            email: 'default@approved.com',
+            password: 'motdepassehashé'
+        });
+
+        const saved = await utilisateur.save();
+
+        expect(saved.isApproved).toBe('approved');
+    });
+
+    it('devrait accepter les valeurs pending, approved, rejected pour isApproved', async () => {
+        const pendingUser = await Utilisateur.create({
+            nom: 'Pending',
+            prenom: 'User',
+            email: 'pending@test.com',
+            password: 'motdepassehashé',
+            isApproved: 'pending'
+        });
+        expect(pendingUser.isApproved).toBe('pending');
+
+        const approvedUser = await Utilisateur.create({
+            nom: 'Approved',
+            prenom: 'User',
+            email: 'approved@test.com',
+            password: 'motdepassehashé',
+            isApproved: 'approved'
+        });
+        expect(approvedUser.isApproved).toBe('approved');
+
+        const rejectedUser = await Utilisateur.create({
+            nom: 'Rejected',
+            prenom: 'User',
+            email: 'rejected@test.com',
+            password: 'motdepassehashé',
+            isApproved: 'rejected'
+        });
+        expect(rejectedUser.isApproved).toBe('rejected');
+    });
+
+    it('devrait refuser une valeur invalide pour isApproved', async () => {
+        const utilisateur = new Utilisateur({
+            nom: 'Invalid',
+            prenom: 'Status',
+            email: 'invalid@status.com',
+            password: 'motdepassehashé',
+            isApproved: 'invalid_status'
+        });
+
+        let err;
+        try {
+            await utilisateur.save();
+        } catch (error) {
+            err = error;
+        }
+
+        expect(err).toBeInstanceOf(mongoose.Error.ValidationError);
+        expect(err.errors.isApproved).toBeDefined();
+    });
+
+    it('devrait pouvoir stocker un rejectionReason', async () => {
+        const utilisateur = await Utilisateur.create({
+            nom: 'Rejected',
+            prenom: 'WithReason',
+            email: 'rejected@reason.com',
+            password: 'motdepassehashé',
+            isApproved: 'rejected',
+            rejectionReason: 'Documents non conformes'
+        });
+
+        expect(utilisateur.rejectionReason).toBe('Documents non conformes');
+    });
 });

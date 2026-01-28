@@ -7,7 +7,9 @@ const utilisateurSchema = new mongoose.Schema({
     telephone: { type: String },
     password: { type: String, required: true },
     logo: { type: mongoose.Schema.Types.ObjectId, ref: 'Photo' },
-    role: { type: String, enum: ['candidat', 'entreprise', 'admin'], default: 'candidat' }
+    role: { type: String, enum: ['candidat', 'entreprise', 'admin'], default: 'candidat' },
+    isApproved: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved' },
+    rejectionReason: { type: String }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Utilisateur', utilisateurSchema);

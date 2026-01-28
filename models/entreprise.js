@@ -8,6 +8,8 @@ const entrepriseSchema = new mongoose.Schema({
     logo: { type: String }, // URL vers l'image ou base64
     images: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Photo' }], // tableau de photos liées
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Utilisateur', required: true },
+    isApproved: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
+    rejectionReason: { type: String }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Entreprise', entrepriseSchema);

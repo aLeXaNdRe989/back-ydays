@@ -53,4 +53,74 @@ describe('Entreprise Model Test (Atlas)', () => {
         expect(err).toBeInstanceOf(mongoose.Error.ValidationError);
         expect(err.errors.email).toBeDefined();
     });
+
+    // ===== TESTS isApproved =====
+    it('devrait avoir isApproved par defaut a pending', async () => {
+        const entreprise = new Entreprise({
+            nom: 'Default Entreprise',
+            email: 'default@entreprise.com',
+            createdBy: CreatedBy
+        });
+
+        const saved = await entreprise.save();
+
+        expect(saved.isApproved).toBe('pending');
+    });
+
+    it('devrait accepter les valeurs pending, approved, rejected pour isApproved', async () => {
+        const pendingEntreprise = await Entreprise.create({
+            nom: 'Pending Entreprise',
+            email: 'pending@entreprise.com',
+            createdBy: CreatedBy,
+            isApproved: 'pending'
+        });
+        expect(pendingEntreprise.isApproved).toBe('pending');
+
+        const approvedEntreprise = await Entreprise.create({
+            nom: 'Approved Entreprise',
+            email: 'approved@entreprise.com',
+            createdBy: CreatedBy,
+            isApproved: 'approved'
+        });
+        expect(approvedEntreprise.isApproved).toBe('approved');
+
+        const rejectedEntreprise = await Entreprise.create({
+            nom: 'Rejected Entreprise',
+            email: 'rejected@entreprise.com',
+            createdBy: CreatedBy,
+            isApproved: 'rejected'
+        });
+        expect(rejectedEntreprise.isApproved).toBe('rejected');
+    });
+
+    it('devrait refuser une valeur invalide pour isApproved', async () => {
+        const entreprise = new Entreprise({
+            nom: 'Invalid Status',
+            email: 'invalid@status.com',
+            createdBy: CreatedBy,
+            isApproved: 'invalid_status'
+        });
+
+        let err;
+        try {
+            await entreprise.save();
+        } catch (error) {
+            err = error;
+        }
+
+        expect(err).toBeInstanceOf(mongoose.Error.ValidationError);
+        expect(err.errors.isApproved).toBeDefined();
+    });
+
+    it('devrait pouvoir stocker un rejectionReason', async () => {
+        const entreprise = await Entreprise.create({
+            nom: 'Rejected Entreprise',
+            email: 'rejected@reason.com',
+            createdBy: CreatedBy,
+            isApproved: 'rejected',
+            rejectionReason: 'Entreprise non verifiee'
+        });
+
+        expect(entreprise.rejectionReason).toBe('Entreprise non verifiee');
+    });
 });

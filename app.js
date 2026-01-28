@@ -70,6 +70,7 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(specs));
 require('./models');
 
 const authRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const entrepriseRoutes = require('./routes/entrepriseRoutes');
 const offreRoutes = require('./routes/offreRoutes');
 const diplomeRoutes = require('./routes/diplomeRoutes');
@@ -84,6 +85,7 @@ const signalementRoute = require('./routes/signalementRoutes');
 const utilisateurRoute = require('./routes/utilisateurRoutes');
 
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/entreprises', entrepriseRoutes);
 app.use('/api/offres', offreRoutes);
 app.use('/api/diplomes', diplomeRoutes);
