@@ -284,7 +284,10 @@ describe('Tests Admin Routes', () => {
             // Creer une offre liee a l'entreprise
             await Offre.create({
                 titre: 'Test Offre',
-                entreprise: entrepriseId
+                description: 'Description test',
+                lieu: 'Paris',
+                entreprise: entrepriseId,
+                createdBy: entrepriseUserId
             });
 
             const res = await request(app)
@@ -306,7 +309,10 @@ describe('Tests Admin Routes', () => {
         it('devrait retourner la liste des offres', async () => {
             await Offre.create({
                 titre: 'Offre 1',
-                entreprise: entrepriseId
+                description: 'Description offre 1',
+                lieu: 'Lyon',
+                entreprise: entrepriseId,
+                createdBy: entrepriseUserId
             });
 
             const res = await request(app)
@@ -323,7 +329,10 @@ describe('Tests Admin Routes', () => {
         it('devrait supprimer une offre', async () => {
             const offre = await Offre.create({
                 titre: 'Offre a supprimer',
-                entreprise: entrepriseId
+                description: 'A supprimer',
+                lieu: 'Marseille',
+                entreprise: entrepriseId,
+                createdBy: entrepriseUserId
             });
 
             const res = await request(app)
