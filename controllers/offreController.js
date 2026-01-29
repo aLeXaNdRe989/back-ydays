@@ -1,5 +1,6 @@
 const Offre = require('../models/offre');
 const Entreprise = require('../models/entreprise');
+const Candidature = require('../models/Candidature');
 require('../models/photo');
 
 // Creer une offre (entreprise connectee)
@@ -198,6 +199,103 @@ exports.deleteOffre = async (req, res) => {
 
         await Offre.findByIdAndDelete(offreId);
         res.status(200).json({ msg: 'Offre supprimee' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ msg: err.message });
+    }
+};
+
+// Candidater a une offre
+exports.candidater = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const offreId = req.params.id;
+        const { message } = req.body;
+
+        // Verifier que l'utilisateur est un candidat
+        if (req.user.role !== 'candidat') {
+            return res.status(403).json({ msg: 'Seuls les candidats peuvent postuler aux offres' });
+        }
+
+        // Verifier que l'offre existe et est active
+        const offre = await Offre.findById(offreId);
+        if (!offre) {
+            return res.status(404).json({ msg: 'Offre non trouvee' });
+        }
+
+        if (offre.statut !== 'active') {
+            return res.status(400).json({ msg: 'Cette offre n\'est plus disponible' });
+        }
+
+        // Verifier si une candidature existe deja
+        const existingCandidature = await Candidature.findOne({
+            offre: offreId,
+            candidat: userId
+        });
+
+        if (existingCandidature) {
+            return res.status(400).json({ msg: 'Vous avez deja postule a cette offre' });
+        }
+
+        // Creer la candidature
+        const candidature = new Candidature({
+            offre: offreId,
+            candidat: userId,
+            message: message || ''
+        });
+
+        await candidature.save();
+
+        res.status(201).json({
+            msg: 'Candidature envoyee avec succes',
+            candidature
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ msg: err.message });
+    }
+};
+
+// Recuperer mes candidatures (pour un candidat)
+exports.getMesCandidatures = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        const candidatures = await Candidature.find({ candidat: userId })
+            .sort({ createdAt: -1 })
+            .populate({
+                path: 'offre',
+                populate: { path: 'entreprise', select: 'nom logo' }
+            });
+
+        res.status(200).json({ candidatures });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ msg: err.message });
+    }
+};
+
+// Recuperer les candidatures d'une offre (pour l'entreprise)
+exports.getCandidaturesOffre = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const offreId = req.params.id;
+
+        // Verifier que l'offre appartient a l'utilisateur
+        const offre = await Offre.findById(offreId);
+        if (!offre) {
+            return res.status(404).json({ msg: 'Offre non trouvee' });
+        }
+
+        if (offre.createdBy.toString() !== userId.toString() && req.user.role !== 'admin') {
+            return res.status(403).json({ msg: 'Non autorise' });
+        }
+
+        const candidatures = await Candidature.find({ offre: offreId })
+            .sort({ createdAt: -1 })
+            .populate('candidat', 'nom prenom email telephone');
+
+        res.status(200).json({ candidatures });
     } catch (err) {
         console.error(err);
         res.status(500).json({ msg: err.message });
