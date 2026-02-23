@@ -3,12 +3,19 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 const request = require('supertest');
 const app = require('../../app');
 const Photo = require('../../models/photo');
+const { getAuthToken } = require('../helpers/authHelper');
 
 describe('Photo API', () => {
+    let token;
+
+    beforeEach(async () => {
+        token = await getAuthToken();
+    });
 
     it('POST /api/photos - doit créer une photo', async () => {
         const res = await request(app)
             .post('/api/photos')
+            .set('Authorization', `Bearer ${token}`)
             .send({
                 photo: 'http://photos.com/image1.png',
                 table: 'entreprise'
@@ -49,6 +56,7 @@ describe('Photo API', () => {
 
         const res = await request(app)
             .put(`/api/photos/${photo._id}`)
+            .set('Authorization', `Bearer ${token}`)
             .send({ photo: 'http://photos.com/updatedImage.png' });
 
         expect(res.statusCode).toBe(200);
@@ -61,7 +69,9 @@ describe('Photo API', () => {
             table: 'entreprise'
         });
 
-        const res = await request(app).delete(`/api/photos/${photo._id}`);
+        const res = await request(app)
+            .delete(`/api/photos/${photo._id}`)
+            .set('Authorization', `Bearer ${token}`);
 
         expect(res.statusCode).toBe(200);
         expect(res.body.message).toBe('Photo supprimée');

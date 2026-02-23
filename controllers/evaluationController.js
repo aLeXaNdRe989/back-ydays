@@ -1,5 +1,4 @@
 const Evaluation = require('../models/evaluation');
-require('../models/utilisateur');
 
 exports.createEvaluation = async (req, res) => {
     try {
@@ -35,7 +34,8 @@ exports.getEvaluationById = async (req, res) => {
 
 exports.updateEvaluation = async (req, res) => {
     try {
-        const evaluation = await Evaluation.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const { note, commentaire, atouts, faiblesses } = req.body;
+        const evaluation = await Evaluation.findByIdAndUpdate(req.params.id, { note, commentaire, atouts, faiblesses }, { new: true });
         if (!evaluation) return res.status(404).json({ message: 'Evaluation non trouvée' });
         res.status(200).json(evaluation);
     } catch (err) {

@@ -7,29 +7,25 @@ const Etudiant = require('../../models/etudiant');
 const Ecole = require('../../models/ecole');
 const Entreprise = require('../../models/entreprise');
 const Utilisateur = require('../../models/utilisateur');
+const { getAuthToken } = require('../helpers/authHelper');
 
 describe('Signalement API', () => {
+    let token;
+
+    beforeEach(async () => {
+        token = await getAuthToken();
+    });
 
     it('POST /api/signalements - doit créer un signalement', async () => {
         const utilisateur = await Utilisateur.create({
-            nom: 'Doe',
-            prenom: 'John',
-            email: 'john.doe@example.com',
-            password: 'hashedpassword'
+            nom: 'Doe', prenom: 'John', email: 'john.doe@example.com', password: 'hashedpassword'
         });
-
-        const etudiant = await Etudiant.create({
-            utilisateur: utilisateur._id,
-            dateDebut: new Date('2024-01-01')
-        });
+        const etudiant = await Etudiant.create({ utilisateur: utilisateur._id, dateDebut: new Date('2024-01-01') });
 
         const res = await request(app)
             .post('/api/signalements')
-            .send({
-                etudiant: etudiant._id,
-                titre: 'Absence de tuteur',
-                description: 'Pas de suivi pendant le stage'
-            });
+            .set('Authorization', `Bearer ${token}`)
+            .send({ etudiant: etudiant._id, titre: 'Absence de tuteur', description: 'Pas de suivi pendant le stage' });
 
         expect(res.statusCode).toBe(201);
         expect(res.body.titre).toBe('Absence de tuteur');
@@ -40,32 +36,31 @@ describe('Signalement API', () => {
         await Signalement.create({ titre: 'Problème 1', description: 'Desc 1' });
         await Signalement.create({ titre: 'Problème 2', description: 'Desc 2' });
 
-        const res = await request(app).get('/api/signalements');
+        const res = await request(app)
+            .get('/api/signalements')
+            .set('Authorization', `Bearer ${token}`);
 
         expect(res.statusCode).toBe(200);
         expect(res.body.length).toBe(2);
     });
 
     it('GET /api/signalements/:id - doit retourner un signalement spécifique', async () => {
-        const signalement = await Signalement.create({
-            titre: 'Problème spécifique',
-            description: 'Détail spécifique'
-        });
+        const signalement = await Signalement.create({ titre: 'Problème spécifique', description: 'Détail spécifique' });
 
-        const res = await request(app).get(`/api/signalements/${signalement._id}`);
+        const res = await request(app)
+            .get(`/api/signalements/${signalement._id}`)
+            .set('Authorization', `Bearer ${token}`);
 
         expect(res.statusCode).toBe(200);
         expect(res.body.titre).toBe('Problème spécifique');
     });
 
     it('PUT /api/signalements/:id - doit mettre à jour un signalement', async () => {
-        const signalement = await Signalement.create({
-            titre: 'Titre avant modif',
-            description: 'Description avant'
-        });
+        const signalement = await Signalement.create({ titre: 'Titre avant modif', description: 'Description avant' });
 
         const res = await request(app)
             .put(`/api/signalements/${signalement._id}`)
+            .set('Authorization', `Bearer ${token}`)
             .send({ titre: 'Titre après modif' });
 
         expect(res.statusCode).toBe(200);
@@ -73,12 +68,11 @@ describe('Signalement API', () => {
     });
 
     it('DELETE /api/signalements/:id - doit supprimer un signalement', async () => {
-        const signalement = await Signalement.create({
-            titre: 'A supprimer',
-            description: 'Signalement à supprimer'
-        });
+        const signalement = await Signalement.create({ titre: 'A supprimer', description: 'Signalement à supprimer' });
 
-        const res = await request(app).delete(`/api/signalements/${signalement._id}`);
+        const res = await request(app)
+            .delete(`/api/signalements/${signalement._id}`)
+            .set('Authorization', `Bearer ${token}`);
 
         expect(res.statusCode).toBe(200);
         expect(res.body.message).toBe('Signalement supprimé');

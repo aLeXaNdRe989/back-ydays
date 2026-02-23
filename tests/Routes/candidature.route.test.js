@@ -75,6 +75,21 @@ describe('Candidature API', () => {
             expect(res.body.candidature.message).toBe('Je suis tres motive pour ce poste');
         });
 
+        it('Doit permettre de postuler avec CV et lettre de motivation', async () => {
+            const res = await request(app)
+                .post(`/api/offres/${offre._id}/candidater`)
+                .set('Authorization', `Bearer ${candidatToken}`)
+                .send({
+                    message: 'Ma candidature',
+                    cv: 'https://example.com/cv.pdf',
+                    lettreMotivation: 'https://example.com/lettre.pdf'
+                });
+
+            expect(res.statusCode).toBe(201);
+            expect(res.body.candidature.cv).toBe('https://example.com/cv.pdf');
+            expect(res.body.candidature.lettreMotivation).toBe('https://example.com/lettre.pdf');
+        });
+
         it('Doit permettre de postuler sans message', async () => {
             const res = await request(app)
                 .post(`/api/offres/${offre._id}/candidater`)
@@ -229,6 +244,89 @@ describe('Candidature API', () => {
         it('Doit refuser sans authentification', async () => {
             const res = await request(app)
                 .get(`/api/offres/${offre._id}/candidatures`);
+
+            expect(res.statusCode).toBe(401);
+        });
+    });
+
+    describe('PATCH /api/offres/:offreId/candidatures/:candidatureId', () => {
+
+        let candidature;
+
+        beforeEach(async () => {
+            candidature = await Candidature.create({
+                offre: offre._id,
+                candidat: candidat._id,
+                message: 'Ma candidature test'
+            });
+        });
+
+        it('Doit permettre de marquer une candidature comme vue', async () => {
+            const res = await request(app)
+                .patch(`/api/offres/${offre._id}/candidatures/${candidature._id}`)
+                .set('Authorization', `Bearer ${entrepriseToken}`)
+                .send({ statut: 'vue' });
+
+            expect(res.statusCode).toBe(200);
+            expect(res.body.candidature.statut).toBe('vue');
+        });
+
+        it('Doit permettre d\'accepter une candidature avec reponse', async () => {
+            const res = await request(app)
+                .patch(`/api/offres/${offre._id}/candidatures/${candidature._id}`)
+                .set('Authorization', `Bearer ${entrepriseToken}`)
+                .send({ statut: 'acceptee', reponseEntreprise: 'Felicitations !' });
+
+            expect(res.statusCode).toBe(200);
+            expect(res.body.candidature.statut).toBe('acceptee');
+            expect(res.body.candidature.reponseEntreprise).toBe('Felicitations !');
+            expect(res.body.candidature.dateReponse).toBeDefined();
+        });
+
+        it('Doit permettre de refuser une candidature', async () => {
+            const res = await request(app)
+                .patch(`/api/offres/${offre._id}/candidatures/${candidature._id}`)
+                .set('Authorization', `Bearer ${entrepriseToken}`)
+                .send({ statut: 'refusee', reponseEntreprise: 'Desole, le poste a ete pourvu' });
+
+            expect(res.statusCode).toBe(200);
+            expect(res.body.candidature.statut).toBe('refusee');
+            expect(res.body.candidature.dateReponse).toBeDefined();
+        });
+
+        it('Doit refuser un statut invalide', async () => {
+            const res = await request(app)
+                .patch(`/api/offres/${offre._id}/candidatures/${candidature._id}`)
+                .set('Authorization', `Bearer ${entrepriseToken}`)
+                .send({ statut: 'invalide' });
+
+            expect(res.statusCode).toBe(400);
+            expect(res.body.msg).toContain('Statut invalide');
+        });
+
+        it('Doit refuser si non proprietaire de l\'offre', async () => {
+            const autreUser = await Utilisateur.create({
+                nom: 'Autre',
+                prenom: 'Entreprise',
+                email: 'autre2@test.com',
+                password: 'hashedpassword',
+                role: 'entreprise',
+                isApproved: 'approved'
+            });
+            const autreToken = jwt.sign({ id: autreUser._id }, process.env.JWT_SECRET || 'test-secret');
+
+            const res = await request(app)
+                .patch(`/api/offres/${offre._id}/candidatures/${candidature._id}`)
+                .set('Authorization', `Bearer ${autreToken}`)
+                .send({ statut: 'vue' });
+
+            expect(res.statusCode).toBe(403);
+        });
+
+        it('Doit refuser sans authentification', async () => {
+            const res = await request(app)
+                .patch(`/api/offres/${offre._id}/candidatures/${candidature._id}`)
+                .send({ statut: 'vue' });
 
             expect(res.statusCode).toBe(401);
         });

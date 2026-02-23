@@ -10,3 +10,6 @@ require('./fichiers');
 require('./partenaires');
 require('./reponseSignalement');
 require('./signalement');
+require('./Candidature');
+require('./Favori');
+require('./Notification');

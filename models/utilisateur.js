@@ -9,7 +9,10 @@ const utilisateurSchema = new mongoose.Schema({
     logo: { type: mongoose.Schema.Types.ObjectId, ref: 'Photo' },
     role: { type: String, enum: ['candidat', 'entreprise', 'admin'], default: 'candidat' },
     isApproved: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved' },
-    rejectionReason: { type: String }
+    rejectionReason: { type: String },
+    resetToken: { type: String },
+    resetTokenExpires: { type: Date },
+    resetTokenUsed: { type: Boolean, default: false }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Utilisateur', utilisateurSchema);

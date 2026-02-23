@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const ecoleController = require('../controllers/ecoleController');
+const { protect } = require('../middlewares/authMiddleware');
 
-router.post('/', ecoleController.createEcole);
 router.get('/', ecoleController.getAllEcoles);
 router.get('/:id', ecoleController.getEcoleById);
-router.put('/:id', ecoleController.updateEcole);
-router.delete('/:id', ecoleController.deleteEcole);
+router.post('/', protect, ecoleController.createEcole);
+router.put('/:id', protect, ecoleController.updateEcole);
+router.delete('/:id', protect, ecoleController.deleteEcole);
 
 module.exports = router;

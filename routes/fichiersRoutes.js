@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const fichiersController = require('../controllers/fichiersController');
+const { protect } = require('../middlewares/authMiddleware');
 
-router.post('/', fichiersController.createFichier);
 router.get('/', fichiersController.getAllFichiers);
 router.get('/:id', fichiersController.getFichierById);
-router.put('/:id', fichiersController.updateFichier);
-router.delete('/:id', fichiersController.deleteFichier);
+router.post('/', protect, fichiersController.createFichier);
+router.put('/:id', protect, fichiersController.updateFichier);
+router.delete('/:id', protect, fichiersController.deleteFichier);
 
 module.exports = router;

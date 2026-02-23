@@ -23,6 +23,8 @@ const offreSchema = new mongoose.Schema({
     dateDebut: { type: Date },
     dateLimite: { type: Date },
     remuneration: { type: String },
+    salaireMin: { type: Number },
+    salaireMax: { type: Number },
     teletravail: {
         type: String,
         enum: ['non', 'partiel', 'oui'],
@@ -33,6 +35,12 @@ const offreSchema = new mongoose.Schema({
     // Localisation
     lieu: { type: String, required: true },
     codePostal: { type: String },
+
+    // Secteur d'activite
+    secteur: {
+        type: String,
+        enum: ['informatique', 'marketing', 'commerce', 'finance', 'ressources_humaines', 'communication', 'industrie', 'sante', 'education', 'immobilier', 'logistique', 'juridique', 'design', 'btp', 'environnement', 'autre']
+    },
 
     // Statut
     statut: {

@@ -1,5 +1,4 @@
 const Fichiers = require('../models/fichiers');
-require('../models/etudiant');
 
 exports.createFichier = async (req, res) => {
     try {
@@ -35,7 +34,8 @@ exports.getFichierById = async (req, res) => {
 
 exports.updateFichier = async (req, res) => {
     try {
-        const fichier = await Fichiers.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const { libelle, fichier: fichierUrl } = req.body;
+        const fichier = await Fichiers.findByIdAndUpdate(req.params.id, { libelle, fichier: fichierUrl }, { new: true });
         if (!fichier) return res.status(404).json({ message: 'Fichier non trouvé' });
         res.status(200).json(fichier);
     } catch (err) {

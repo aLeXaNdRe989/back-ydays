@@ -4,8 +4,14 @@ const request = require('supertest');
 const app = require('../../app');
 const Ecole = require('../../models/ecole');
 const Diplome = require('../../models/diplome');
+const { getAuthToken } = require('../helpers/authHelper');
 
 describe('Ecole API', () => {
+    let token;
+
+    beforeEach(async () => {
+        token = await getAuthToken();
+    });
 
     it('POST /api/ecoles - doit créer une école', async () => {
         const diplome = await Diplome.create({
@@ -16,6 +22,7 @@ describe('Ecole API', () => {
 
         const res = await request(app)
             .post('/api/ecoles')
+            .set('Authorization', `Bearer ${token}`)
             .send({
                 nom: 'Ecole Test',
                 description: 'Une école de test',
@@ -51,6 +58,7 @@ describe('Ecole API', () => {
 
         const res = await request(app)
             .put(`/api/ecoles/${ecole._id}`)
+            .set('Authorization', `Bearer ${token}`)
             .send({ nom: 'Ecole Updated' });
 
         expect(res.statusCode).toBe(200);
@@ -60,7 +68,9 @@ describe('Ecole API', () => {
     it('DELETE /api/ecoles/:id - doit supprimer une école', async () => {
         const ecole = await Ecole.create({ nom: 'Ecole à supprimer' });
 
-        const res = await request(app).delete(`/api/ecoles/${ecole._id}`);
+        const res = await request(app)
+            .delete(`/api/ecoles/${ecole._id}`)
+            .set('Authorization', `Bearer ${token}`);
 
         expect(res.statusCode).toBe(200);
         expect(res.body.message).toBe('Ecole supprimée');

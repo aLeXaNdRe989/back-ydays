@@ -1,5 +1,4 @@
 const Diplome = require('../models/diplome');
-require('../models/photo');
 
 exports.createDiplome = async (req, res) => {
     try {
@@ -35,7 +34,8 @@ exports.getDiplomeById = async (req, res) => {
 
 exports.updateDiplome = async (req, res) => {
     try {
-        const diplome = await Diplome.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const { libelle, description, urlofficiel, niveau, images } = req.body;
+        const diplome = await Diplome.findByIdAndUpdate(req.params.id, { libelle, description, urlofficiel, niveau, images }, { new: true });
         if (!diplome) return res.status(404).json({ message: 'Diplome non trouvé' });
         res.status(200).json(diplome);
     } catch (err) {

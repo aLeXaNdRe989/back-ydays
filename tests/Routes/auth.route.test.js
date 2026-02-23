@@ -123,6 +123,117 @@ describe('Tests Auth Routes - Inscription Entreprise', () => {
         });
     });
 
+    // ===== TESTS FORGOT PASSWORD =====
+    describe('POST /api/auth/forgot-password', () => {
+        it('devrait generer un token de reinitialisation', async () => {
+            await request(app).post('/api/auth/register').send({
+                nom: 'Reset', prenom: 'User', email: 'reset@test.com', password: 'password123'
+            });
+
+            const res = await request(app)
+                .post('/api/auth/forgot-password')
+                .send({ email: 'reset@test.com' });
+
+            expect(res.statusCode).toBe(200);
+            expect(res.body).toHaveProperty('resetToken');
+            expect(res.body.expiresIn).toBe('30 minutes');
+        });
+
+        it('devrait retourner 404 si email inconnu', async () => {
+            const res = await request(app)
+                .post('/api/auth/forgot-password')
+                .send({ email: 'inconnu@test.com' });
+
+            expect(res.statusCode).toBe(404);
+        });
+
+        it('devrait retourner 400 si email manquant', async () => {
+            const res = await request(app)
+                .post('/api/auth/forgot-password')
+                .send({});
+
+            expect(res.statusCode).toBe(400);
+        });
+    });
+
+    // ===== TESTS RESET PASSWORD =====
+    describe('POST /api/auth/reset-password', () => {
+        let resetToken;
+
+        beforeEach(async () => {
+            await request(app).post('/api/auth/register').send({
+                nom: 'Reset', prenom: 'User', email: 'reset@test.com', password: 'oldpassword'
+            });
+            const res = await request(app)
+                .post('/api/auth/forgot-password')
+                .send({ email: 'reset@test.com' });
+            resetToken = res.body.resetToken;
+        });
+
+        it('devrait reinitialiser le mot de passe avec un token valide', async () => {
+            const res = await request(app)
+                .post('/api/auth/reset-password')
+                .send({ token: resetToken, newPassword: 'newpassword123' });
+
+            expect(res.statusCode).toBe(200);
+            expect(res.body.msg).toMatch(/réinitialisé/);
+
+            // Verifier que le nouveau mot de passe fonctionne
+            const loginRes = await request(app)
+                .post('/api/auth/login')
+                .send({ email: 'reset@test.com', password: 'newpassword123' });
+            expect(loginRes.statusCode).toBe(200);
+        });
+
+        it('devrait refuser un lien deja utilise', async () => {
+            // Premier usage : OK
+            await request(app)
+                .post('/api/auth/reset-password')
+                .send({ token: resetToken, newPassword: 'newpassword123' });
+
+            // Deuxieme usage : refuse
+            const res = await request(app)
+                .post('/api/auth/reset-password')
+                .send({ token: resetToken, newPassword: 'autrepassword' });
+
+            expect(res.statusCode).toBe(400);
+            expect(res.body.msg).toMatch(/déjà été utilisé/);
+        });
+
+        it('devrait refuser un lien expire', async () => {
+            // Forcer l'expiration du token en base
+            await Utilisateur.updateOne(
+                { email: 'reset@test.com' },
+                { resetTokenExpires: new Date(Date.now() - 1000) }
+            );
+
+            const res = await request(app)
+                .post('/api/auth/reset-password')
+                .send({ token: resetToken, newPassword: 'newpassword123' });
+
+            expect(res.statusCode).toBe(400);
+            expect(res.body.msg).toMatch(/expiré/);
+        });
+
+        it('devrait refuser un token invalide', async () => {
+            const res = await request(app)
+                .post('/api/auth/reset-password')
+                .send({ token: 'tokenbidon', newPassword: 'newpassword123' });
+
+            expect(res.statusCode).toBe(400);
+            expect(res.body.msg).toMatch(/invalide/);
+        });
+
+        it('devrait refuser un mot de passe trop court', async () => {
+            const res = await request(app)
+                .post('/api/auth/reset-password')
+                .send({ token: resetToken, newPassword: '123' });
+
+            expect(res.statusCode).toBe(400);
+            expect(res.body.msg).toMatch(/10 caractères/);
+        });
+    });
+
     // ===== TESTS LOGIN AVEC isApproved =====
     describe('POST /api/auth/login - retour isApproved', () => {
         it('devrait retourner isApproved dans la reponse login', async () => {

@@ -1,5 +1,4 @@
 const Partenaire = require('../models/partenaires');
-require('../models/photo');
 
 exports.createPartenaire = async (req, res) => {
     try {
@@ -35,7 +34,8 @@ exports.getPartenaireById = async (req, res) => {
 
 exports.updatePartenaire = async (req, res) => {
     try {
-        const partenaire = await Partenaire.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const { nom, type, logo, images } = req.body;
+        const partenaire = await Partenaire.findByIdAndUpdate(req.params.id, { nom, type, logo, images }, { new: true });
         if (!partenaire) return res.status(404).json({ message: 'Partenaire non trouvé' });
         res.status(200).json(partenaire);
     } catch (err) {

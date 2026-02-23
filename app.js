@@ -2,8 +2,35 @@ require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
+
+// En-tetes de securite (OWASP)
+app.use(helmet());
+
+// Rate limiting (desactive en test pour eviter les faux positifs)
+if (process.env.NODE_ENV !== 'test') {
+    // Rate limiting global : 100 requetes par 15 min par IP
+    const limiter = rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 100,
+        standardHeaders: true,
+        legacyHeaders: false,
+        message: { error: 'Trop de requêtes, réessayez dans 15 minutes' }
+    });
+    app.use('/api/', limiter);
+
+    // Rate limiting specifique pour l'auth (protection brute-force)
+    const authLimiter = rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 20,
+        message: { error: 'Trop de tentatives, réessayez dans 15 minutes' }
+    });
+    app.use('/api/auth/login', authLimiter);
+    app.use('/api/auth/forgot-password', authLimiter);
+}
 
 const allowedOrigins = [
     'http://localhost:5173',
@@ -83,6 +110,7 @@ const photoRoute = require('./routes/photoRoutes');
 const reponseSignalementRoute = require('./routes/reponseSignalementRoutes');
 const signalementRoute = require('./routes/signalementRoutes');
 const utilisateurRoute = require('./routes/utilisateurRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -98,6 +126,7 @@ app.use('/api/photos', photoRoute);
 app.use('/api/reponses-signalement', reponseSignalementRoute);
 app.use('/api/signalements', signalementRoute);
 app.use('/api/utilisateurs', utilisateurRoute);
+app.use('/api/notifications', notificationRoutes);
 
 app.use('/api', (_req, res) => {
     res.status(404).json({ error: 'Route non trouvée' });

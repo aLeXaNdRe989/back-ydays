@@ -2,6 +2,9 @@ const Utilisateur = require('../models/utilisateur');
 const Entreprise = require('../models/entreprise');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+
+const RESET_TOKEN_TTL = 30 * 60 * 1000; // 30 minutes
 
 exports.registerutilisateur = async (req, res) => {
     const { email, password, role, nom, prenom, entreprise } = req.body;
@@ -34,10 +37,10 @@ exports.loginutilisateur = async (req, res) => {
 
     try {
         const foundUser = await Utilisateur.findOne({ email });
-        if (!foundUser) return res.status(400).json({ msg: 'Utilisateur introuvable' });
-
-        const isMatch = await bcrypt.compare(password, foundUser.password);
-        if (!isMatch) return res.status(400).json({ msg: 'Mot de passe incorrect' });
+        // Timing attack prevention: always run bcrypt.compare even if user not found
+        const dummyHash = '$2b$10$dummyHashForTimingAttackPrevention000000000000000000';
+        const isMatch = await bcrypt.compare(password, foundUser ? foundUser.password : dummyHash);
+        if (!foundUser || !isMatch) return res.status(400).json({ msg: 'Identifiants incorrects' });
 
         const token = jwt.sign(
             { id: foundUser._id, role: foundUser.role },
@@ -118,6 +121,79 @@ exports.registerEntreprise = async (req, res) => {
                 isApproved: newEntreprise.isApproved
             }
         });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Demander un lien de reinitialisation de mot de passe
+exports.forgotPassword = async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        if (!email) return res.status(400).json({ msg: 'Email requis' });
+
+        const user = await Utilisateur.findOne({ email });
+        if (!user) return res.status(404).json({ msg: 'Aucun compte associé à cet email' });
+
+        // Generer un token unique
+        const resetToken = crypto.randomBytes(32).toString('hex');
+
+        // Sauvegarder le token avec TTL (arbitrage : duree ajustee a 30 min)
+        user.resetToken = resetToken;
+        user.resetTokenExpires = new Date(Date.now() + RESET_TOKEN_TTL);
+        user.resetTokenUsed = false;
+        await user.save();
+
+        // En production on enverrait un email avec le lien
+        // Pour la demo on retourne le token directement
+        res.json({
+            msg: 'Lien de réinitialisation généré',
+            resetToken,
+            expiresIn: '30 minutes'
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Reinitialiser le mot de passe avec le token
+exports.resetPassword = async (req, res) => {
+    const { token, newPassword } = req.body;
+
+    try {
+        if (!token || !newPassword) {
+            return res.status(400).json({ msg: 'Token et nouveau mot de passe requis' });
+        }
+
+        if (newPassword.length < 10) {
+            return res.status(400).json({ msg: 'Le mot de passe doit contenir au moins 10 caractères' });
+        }
+
+        const user = await Utilisateur.findOne({ resetToken: token });
+
+        if (!user) {
+            return res.status(400).json({ msg: 'Token invalide' });
+        }
+
+        // Arbitrage B : verifier si le token a deja ete utilise (invalidation apres 1er usage)
+        if (user.resetTokenUsed) {
+            return res.status(400).json({ msg: 'Ce lien a déjà été utilisé' });
+        }
+
+        // Verifier si le token n'est pas expire (TTL ajuste)
+        if (user.resetTokenExpires < new Date()) {
+            return res.status(400).json({ msg: 'Ce lien a expiré' });
+        }
+
+        // Mettre a jour le mot de passe
+        user.password = await bcrypt.hash(newPassword, 10);
+        user.resetTokenUsed = true; // Marquer comme consomme
+        await user.save();
+
+        res.json({ msg: 'Mot de passe réinitialisé avec succès' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: error.message });

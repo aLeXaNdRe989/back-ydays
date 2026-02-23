@@ -1,7 +1,4 @@
 const Etudiant = require('../models/etudiant');
-require('../models/utilisateur');
-require('../models/ecole');
-require('../models/entreprise');
 
 exports.createEtudiant = async (req, res) => {
     try {
@@ -37,7 +34,8 @@ exports.getEtudiantById = async (req, res) => {
 
 exports.updateEtudiant = async (req, res) => {
     try {
-        const etudiant = await Etudiant.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const { dateDebut, dateDiplome, dateEmbauche } = req.body;
+        const etudiant = await Etudiant.findByIdAndUpdate(req.params.id, { dateDebut, dateDiplome, dateEmbauche }, { new: true });
         if (!etudiant) return res.status(404).json({ message: 'Etudiant non trouvé' });
         res.status(200).json(etudiant);
     } catch (err) {

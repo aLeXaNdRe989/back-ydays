@@ -125,7 +125,7 @@ describe('Tests complets Authentification et Rôles', () => {
             });
 
         expect(res.statusCode).toBe(400);
-        expect(res.body.message || res.body.msg).toMatch(/mot de passe/i);
+        expect(res.body.message || res.body.msg).toMatch(/identifiants incorrects/i);
     });
 
     it('devrait refuser l\'accès sans token', async () => {

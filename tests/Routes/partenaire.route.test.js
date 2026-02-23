@@ -4,19 +4,22 @@ const request = require('supertest');
 const app = require('../../app');
 const Partenaire = require('../../models/partenaires');
 const Photo = require('../../models/photo');
+const { getAuthToken } = require('../helpers/authHelper');
 
 describe('Partenaire API', () => {
+    let token;
+
+    beforeEach(async () => {
+        token = await getAuthToken();
+    });
 
     it('POST /api/partenaires - doit créer un partenaire', async () => {
         const logo = await Photo.create({ photo: 'http://photos.com/logo1.png', table: 'entreprise' });
 
         const res = await request(app)
             .post('/api/partenaires')
-            .send({
-                nom: 'Partenaire Test',
-                type: 'Ecole',
-                logo: logo._id
-            });
+            .set('Authorization', `Bearer ${token}`)
+            .send({ nom: 'Partenaire Test', type: 'Ecole', logo: logo._id });
 
         expect(res.statusCode).toBe(201);
         expect(res.body.nom).toBe('Partenaire Test');
@@ -48,6 +51,7 @@ describe('Partenaire API', () => {
 
         const res = await request(app)
             .put(`/api/partenaires/${partenaire._id}`)
+            .set('Authorization', `Bearer ${token}`)
             .send({ nom: 'Updated Partenaire' });
 
         expect(res.statusCode).toBe(200);
@@ -57,7 +61,9 @@ describe('Partenaire API', () => {
     it('DELETE /api/partenaires/:id - doit supprimer un partenaire', async () => {
         const partenaire = await Partenaire.create({ nom: 'Partenaire à supprimer', type: 'Entreprise' });
 
-        const res = await request(app).delete(`/api/partenaires/${partenaire._id}`);
+        const res = await request(app)
+            .delete(`/api/partenaires/${partenaire._id}`)
+            .set('Authorization', `Bearer ${token}`);
 
         expect(res.statusCode).toBe(200);
         expect(res.body.message).toBe('Partenaire supprimé');

@@ -3,12 +3,19 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 const request = require('supertest');
 const app = require('../../app');
 const Diplome = require('../../models/diplome');
+const { getAuthToken } = require('../helpers/authHelper');
 
 describe('Diplome API', () => {
+    let token;
+
+    beforeEach(async () => {
+        token = await getAuthToken();
+    });
 
     it('POST /api/diplomes - doit créer un diplome', async () => {
         const res = await request(app)
             .post('/api/diplomes')
+            .set('Authorization', `Bearer ${token}`)
             .send({
                 libelle: 'Master Informatique',
                 description: 'Diplome en info',
@@ -52,6 +59,7 @@ describe('Diplome API', () => {
 
         const res = await request(app)
             .put(`/api/diplomes/${diplome._id}`)
+            .set('Authorization', `Bearer ${token}`)
             .send({ niveau: 6 });
 
         expect(res.statusCode).toBe(200);
@@ -64,7 +72,9 @@ describe('Diplome API', () => {
             niveau: 4
         });
 
-        const res = await request(app).delete(`/api/diplomes/${diplome._id}`);
+        const res = await request(app)
+            .delete(`/api/diplomes/${diplome._id}`)
+            .set('Authorization', `Bearer ${token}`);
 
         expect(res.statusCode).toBe(200);
         expect(res.body.message).toBe('Diplome supprimé');

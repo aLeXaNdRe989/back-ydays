@@ -1,12 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { registerutilisateur, loginutilisateur, registerEntreprise } = require('../controllers/authController');
+const { registerutilisateur, loginutilisateur, registerEntreprise, forgotPassword, resetPassword } = require('../controllers/authController');
 const {protect} = require('../middlewares/authMiddleware');
 const Utilisateur = require('../models/utilisateur');
 
 router.post('/register', registerutilisateur);
 router.post('/register-entreprise', registerEntreprise);
 router.post('/login', loginutilisateur);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 
 router.get('/me', protect, async (req, res) => {
     try {

@@ -1,6 +1,4 @@
 const Ecole = require('../models/ecole');
-require('../models/photo');
-require('../models/diplome');
 
 exports.createEcole = async (req, res) => {
     try {
@@ -36,7 +34,8 @@ exports.getEcoleById = async (req, res) => {
 
 exports.updateEcole = async (req, res) => {
     try {
-        const ecole = await Ecole.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const { nom, description, diplome, images } = req.body;
+        const ecole = await Ecole.findByIdAndUpdate(req.params.id, { nom, description, diplome, images }, { new: true });
         if (!ecole) return res.status(404).json({ message: 'Ecole non trouvée' });
         res.status(200).json(ecole);
     } catch (err) {

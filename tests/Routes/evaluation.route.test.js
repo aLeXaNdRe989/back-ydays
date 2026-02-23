@@ -4,8 +4,14 @@ const request = require('supertest');
 const app = require('../../app');
 const Evaluation = require('../../models/evaluation');
 const Utilisateur = require('../../models/utilisateur');
+const { getAuthToken } = require('../helpers/authHelper');
 
 describe('Evaluation API', () => {
+    let token;
+
+    beforeEach(async () => {
+        token = await getAuthToken();
+    });
 
     it('POST /api/evaluations - doit créer une évaluation', async () => {
         const utilisateur = await Utilisateur.create({
@@ -17,6 +23,7 @@ describe('Evaluation API', () => {
 
         const res = await request(app)
             .post('/api/evaluations')
+            .set('Authorization', `Bearer ${token}`)
             .send({
                 utilisateur: utilisateur._id,
                 note: 4.5,
@@ -84,6 +91,7 @@ describe('Evaluation API', () => {
 
         const res = await request(app)
             .put(`/api/evaluations/${evaluation._id}`)
+            .set('Authorization', `Bearer ${token}`)
             .send({ note: 4 });
 
         expect(res.statusCode).toBe(200);
@@ -103,7 +111,9 @@ describe('Evaluation API', () => {
             note: 1
         });
 
-        const res = await request(app).delete(`/api/evaluations/${evaluation._id}`);
+        const res = await request(app)
+            .delete(`/api/evaluations/${evaluation._id}`)
+            .set('Authorization', `Bearer ${token}`);
 
         expect(res.statusCode).toBe(200);
         expect(res.body.message).toBe('Evaluation supprimée');

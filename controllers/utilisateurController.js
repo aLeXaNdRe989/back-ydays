@@ -1,11 +1,11 @@
 const Utilisateur = require('../models/utilisateur');
-require('../models/photo');
 
 exports.createUtilisateur = async (req, res) => {
     try {
         const utilisateur = new Utilisateur(req.body);
         const savedUtilisateur = await utilisateur.save();
-        res.status(201).json(savedUtilisateur);
+        const { password, resetToken, resetTokenExpires, resetTokenUsed, ...safe } = savedUtilisateur.toObject();
+        res.status(201).json(safe);
     } catch (err) {
         console.error(err);
         res.status(400).json({ error: err.message });
@@ -14,7 +14,9 @@ exports.createUtilisateur = async (req, res) => {
 
 exports.getAllUtilisateurs = async (req, res) => {
     try {
-        const utilisateurs = await Utilisateur.find().populate('logo');
+        const utilisateurs = await Utilisateur.find()
+            .select('-password -resetToken -resetTokenExpires -resetTokenUsed')
+            .populate('logo');
         res.status(200).json(utilisateurs);
     } catch (err) {
         console.error(err);
@@ -24,7 +26,9 @@ exports.getAllUtilisateurs = async (req, res) => {
 
 exports.getUtilisateurById = async (req, res) => {
     try {
-        const utilisateur = await Utilisateur.findById(req.params.id).populate('logo');
+        const utilisateur = await Utilisateur.findById(req.params.id)
+            .select('-password -resetToken -resetTokenExpires -resetTokenUsed')
+            .populate('logo');
         if (!utilisateur) return res.status(404).json({ message: 'Utilisateur non trouvé' });
         res.status(200).json(utilisateur);
     } catch (err) {
@@ -35,7 +39,12 @@ exports.getUtilisateurById = async (req, res) => {
 
 exports.updateUtilisateur = async (req, res) => {
     try {
-        const utilisateur = await Utilisateur.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const { nom, prenom, telephone, logo } = req.body;
+        const utilisateur = await Utilisateur.findByIdAndUpdate(
+            req.params.id,
+            { nom, prenom, telephone, logo },
+            { new: true }
+        ).select('-password -resetToken -resetTokenExpires -resetTokenUsed');
         if (!utilisateur) return res.status(404).json({ message: 'Utilisateur non trouvé' });
         res.status(200).json(utilisateur);
     } catch (err) {

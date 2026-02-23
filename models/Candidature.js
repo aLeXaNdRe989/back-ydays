@@ -4,6 +4,8 @@ const candidatureSchema = new mongoose.Schema({
     offre: { type: mongoose.Schema.Types.ObjectId, ref: 'Offre', required: true },
     candidat: { type: mongoose.Schema.Types.ObjectId, ref: 'Utilisateur', required: true },
     message: { type: String, maxlength: 2000 },
+    cv: { type: String },
+    lettreMotivation: { type: String },
     statut: {
         type: String,
         enum: ['en_attente', 'vue', 'acceptee', 'refusee'],
